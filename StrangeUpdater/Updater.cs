@@ -10,7 +10,6 @@ namespace StrangeUpdater
     {
         public bool UpdateRequired(string localPath, string RemotePath)
         {
-            //w przyszłości pierwsza, to powinno być System.Reflection.Assembly.GetEntryAssembly().Location w połączeniu z VERSION.txt
             VersionParser parser = new VersionParser();
             int localVer = parser.GetVersionFromDisc(localPath);
             int remoteVer = parser.GetVersionFromNet(RemotePath);
