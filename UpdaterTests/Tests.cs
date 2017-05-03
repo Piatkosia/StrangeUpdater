@@ -21,5 +21,12 @@ namespace UpdaterTests
             VersionParser parser = new VersionParser();
             Assert.Equal(parser.GetVersionFromNet(@"http://77.81.226.38/patcher/VERSION"), 2);
         }
+        [Fact]
+        public void UpdateRequiredWorks()
+        {
+            Updater up = new Updater();
+            bool req = up.UpdateRequired(@"C:\Users\piatk\Desktop\VERSION.txt", @"http://77.81.226.38/patcher/VERSION");
+            Assert.False(req);
+        }
     }
 }
