@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Navigation;
 
 namespace StrangeUpdater
 {
@@ -20,10 +21,13 @@ namespace StrangeUpdater
             get { return _percentage; }
             set
             {
-                _lastPercentage = _percentage;
-                _percentage = value;
-                if (PercentageChanged != null)
-                    PercentageChanged(this, new ValChangedEventArgs(_lastPercentage, _percentage));
+                if (_percentage != value)
+                {
+                    _lastPercentage = _percentage;
+                    _percentage = value;
+                    if (PercentageChanged != null)
+                        PercentageChanged(this, new ValChangedEventArgs(_lastPercentage, _percentage));
+                }
 
             }
         }
@@ -35,14 +39,35 @@ namespace StrangeUpdater
             get { return _speed; }
             set
             {
-                _lastspeed = _speed;
-                _speed = value;
-                if (SpeedChanged != null) SpeedChanged(this,  new ValChangedEventArgs(_lastspeed, _speed));
+                if (_speed != value)
+                {
+                    _lastspeed = _speed;
+                    _speed = value;
+                    if (SpeedChanged != null) SpeedChanged(this, new ValChangedEventArgs(_lastspeed, _speed));
+                }
             }
         }
 
+        private string _downloadedFileInfo;
+
+        public string DownloadedFileInfo
+        {
+            get { return _downloadedFileInfo; }
+            set
+            {
+                if (_downloadedFileInfo != value)
+                {
+                    _downloadedFileInfo = value;
+                    if (DownloadedInfoChanged != null)
+                        DownloadedInfoChanged(this, new ValSetEventArgs(_downloadedFileInfo));
+                }
+            }
+        }
+
+
         public event ValChangedEventHandler SpeedChanged;
         public event ValChangedEventHandler PercentageChanged;
+        public event ValSetEventHandler DownloadedInfoChanged;
 
         public State DownloadingState { get; set; }
         public State LastState { get; private set; }
@@ -70,6 +95,7 @@ namespace StrangeUpdater
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 return State.Error;
                 //potem to uzależnić od błędu
             }
@@ -82,18 +108,19 @@ namespace StrangeUpdater
         {
             Speed = string.Format("{0} kb/s",
                 (e.BytesReceived / 1024d / _stopWatch.Elapsed.TotalSeconds).ToString("0.00"));
+            Percentage = e.ProgressPercentage.ToString() + "%";
         }
 
         private void _webClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            if (e.Cancelled) LastState = State.Cancelled;
-            else LastState = State.Downloaded;
+            LastState = e.Cancelled ? State.Cancelled : State.Downloaded;
             try
             {
                 _signalEvent.Set();
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 _signalEvent = new AutoResetEvent(true);
             }
         }
