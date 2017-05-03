@@ -11,7 +11,7 @@ namespace StrangeUpdater
     {
         public int GetVersionFromDisc(string Path)
         {
-            string raw = FileReader.GetTextFromFile(Path);
+            string raw = FileReader.GetTextFromFile(Path).Split('\n').FirstOrDefault(x => x.StartsWith("VER"));
             if (String.IsNullOrEmpty(raw) == false) return ParseVersionNumber(raw);
             return 0;
         }
@@ -29,7 +29,7 @@ namespace StrangeUpdater
 
         public int GetVersionFromNet(string Path)
         {
-            string raw = NetReader.GetTextFromNet(Path);
+            string raw = NetReader.GetTextFromNet(Path).Split('\n').FirstOrDefault(x => x.StartsWith("VER"));
             if (String.IsNullOrEmpty(raw) == false) return ParseVersionNumber(raw);
             return 0;
         }
