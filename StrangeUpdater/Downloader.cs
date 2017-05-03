@@ -72,12 +72,12 @@ namespace StrangeUpdater
         public State DownloadingState { get; set; }
         public State LastState { get; private set; }
 
-        WebClient _webClient;
+        WebClient _webClient = new WebClient();
         Stopwatch _stopWatch = new Stopwatch();
-        private AutoResetEvent _signalEvent;
+        private ManualResetEvent _signalEvent;
         public State DownloadFile(string fromUrl, string placeToSave)
         {
-            _signalEvent = new AutoResetEvent(false);
+            _signalEvent = new ManualResetEvent(false);
             _webClient.DownloadFileCompleted -= _webClient_DownloadFileCompleted;
             _webClient.DownloadProgressChanged -= _webClient_DownloadProgressChanged;
             _webClient.DownloadFileCompleted += _webClient_DownloadFileCompleted;
@@ -90,8 +90,8 @@ namespace StrangeUpdater
             {
                 LastState = State.Downloading;
                 _webClient.DownloadFileAsync(URL, placeToSave);
-                _signalEvent.WaitOne();
-                
+               _signalEvent.WaitOne();
+
             }
             catch (Exception ex)
             {
@@ -121,7 +121,7 @@ namespace StrangeUpdater
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                _signalEvent = new AutoResetEvent(true);
+                _signalEvent = new ManualResetEvent(true);
             }
         }
     }

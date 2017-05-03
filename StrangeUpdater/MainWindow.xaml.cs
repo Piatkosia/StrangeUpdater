@@ -46,6 +46,8 @@ namespace StrangeUpdater
             }
             catch (Exception e)
             {
+                if (e is WebException) MessageBox.Show("Napraw sobie internety i wróć:)");
+                this.Close();
                 Console.WriteLine(e.ToString());
             }
 
@@ -74,6 +76,41 @@ namespace StrangeUpdater
             if (state == ButtonState.End)
             {
                 Close();
+            }
+            if (state == ButtonState.UpdateRequired)
+            {
+                DoUpdate();
+            }
+        }
+
+        private void DoUpdate()
+        {
+            Downloader downloader = new Downloader();
+            bool up = updater.Update();
+            if (up)
+            {
+                button.Content = "Aktualizacja w toku";
+                button.IsEnabled = false;
+                foreach (var VARIABLE in updater.FilesToUpdate)
+                {
+                    var localLink = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) +"\\"+ VARIABLE;
+                    var remoteLink = Properties.Resources.ServerAddress + "/" + VARIABLE;
+                    var answ = downloader.DownloadFile(remoteLink, localLink.Replace('/','\\'));
+                    if (answ != State.Downloaded)
+                    {
+                        state = ButtonState.End;
+                        button.Content = "Aktualizacja zakończona niepowodzeniem:( Zakończ";
+                        button.IsEnabled = true;
+                        return;
+                    }
+                }
+                button.IsEnabled = true;
+                state = ButtonState.End;
+                button.Content = "Aktualna. Zakończ";
+            }
+            else
+            {
+                button.Content = "Aktualizacja zakończona niepowodzeniem:( Zakończ";
             }
         }
     }
