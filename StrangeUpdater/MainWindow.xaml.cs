@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -86,6 +87,9 @@ namespace StrangeUpdater
         private void DoUpdate()
         {
             Downloader downloader = new Downloader();
+            downloader.SpeedChanged += Downloader_SpeedChanged;
+            downloader.DownloadedInfoChanged += Downloader_DownloadedInfoChanged;
+            downloader.PercentageChanged += Downloader_PercentageChanged;
             bool up = updater.Update();
             if (up)
             {
@@ -94,7 +98,8 @@ namespace StrangeUpdater
                 foreach (var VARIABLE in updater.FilesToUpdate)
                 {
                     var localLink = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) +"\\"+ VARIABLE;
-                    var remoteLink = Properties.Resources.ServerAddress + "/" + VARIABLE;
+                    var remoteLink = Properties.Resources.ServerAddress + VARIABLE;
+                    fileNamelabel.Content = VARIABLE;
                     var answ = downloader.DownloadFile(remoteLink, localLink.Replace('/','\\'));
                     if (answ != State.Downloaded)
                     {
@@ -103,15 +108,45 @@ namespace StrangeUpdater
                         button.IsEnabled = true;
                         return;
                     }
+                    System.Threading.Thread.Sleep(100);
                 }
+                fileNamelabel.Content = "";
+                FileInfoLabel.Content = "";
+                speedLabel.Content = "";
+                progress.Value = 0;
                 button.IsEnabled = true;
                 state = ButtonState.End;
+                string bin = RunParser.GetBin().Trim();
+                if (!string.IsNullOrEmpty(bin))
+                Process.Start(bin);
                 button.Content = "Aktualna. Zakończ";
             }
             else
             {
                 button.Content = "Aktualizacja zakończona niepowodzeniem:( Zakończ";
             }
+        }
+
+        private void Downloader_PercentageChanged(object source, ValChangedEventArgs ea)
+        {
+            try
+            {
+                progress.Value = (int) Int32.Parse(ea.NewValue.ToString().Replace("%",""));
+            }
+            catch
+            {
+                //nie z tąd
+            }
+        }
+
+        private void Downloader_DownloadedInfoChanged(object source, ValSetEventArgs ea)
+        {
+            FileInfoLabel.Content = ea.NewValue.ToString();
+        }
+
+        private void Downloader_SpeedChanged(object source, ValChangedEventArgs ea)
+        {
+            speedLabel.Content = ea.NewValue.ToString();
         }
     }
 
